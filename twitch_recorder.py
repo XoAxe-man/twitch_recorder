@@ -12,14 +12,6 @@ Secret = "gr20bcz49njm3d35qis7n2pobdxjqb"
 VOD_DIR = '/VOD'  # Folder where recorded videos are saved
 AUTH_TOKEN = '4llgd78menjyj2fc9i3pbpnde3f8nw'  # Twitch token used by streamlink
 PORT = 8080  # Local port for the webhook endpoint
-process = subprocess.Popen(
-    cmd, 
-    shell=True, 
-    executable='/bin/bash',
-    stdout=subprocess.DEVNULL,
-    stderr=subprocess.DEVNULL,
-    stdin=subprocess.DEVNULL
-)
 
 # Track currently running subprocesses by broadcaster name.
 active_recordings = {}
@@ -79,7 +71,14 @@ class TwitchWebHookHandler(BaseHTTPRequestHandler):
                     )
 
                     # Run the recording pipeline in a shell.
-                    process = subprocess.Popen(cmd, shell=True, executable='bin/bash')
+                    process = subprocess.Popen(
+                             cmd, 
+                             shell=True, 
+                             executable='/bin/bash',
+                             stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL,
+                             stdin=subprocess.DEVNULL
+                            )
                     active_recordings[broadcaster] = process
                 else:
                     print(f"--> Received Webhook but already recording.")
@@ -90,6 +89,6 @@ class TwitchWebHookHandler(BaseHTTPRequestHandler):
 
 if __name__ == '__main__':
     # Start the local webhook server so Twitch can send event notifications.
-    server = HTTPServer(('127.0.0.1', PORT), TwitchWebHookHandler)
+    server = HTTPServer(('0.0.0.0', PORT), TwitchWebHookHandler)
     print("Listening for Webhooks")
     server.serve_forever()
