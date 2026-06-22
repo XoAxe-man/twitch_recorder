@@ -1,3 +1,4 @@
+import os   
 import json
 import hmac
 import hashlib
@@ -8,9 +9,9 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 # This script listens for Twitch EventSub webhooks and starts/stops recordings.
 # The secret is used to verify that webhook requests really came from Twitch.
-Secret = "gr20bcz49njm3d35qis7n2pobdxjqb"
+Secret = os.getenv('TWITCH_SECRET', 'default_fallback_secret_if_empty')  # Replace with your own secret or set as an environment variable
 VOD_DIR = '/VOD'  # Folder where recorded videos are saved
-AUTH_TOKEN = '4llgd78menjyj2fc9i3pbpnde3f8nw'  # Twitch token used by streamlink
+AUTH_TOKEN = os.getenv('Twitch_auth_token', '')  # Twitch token used by streamlink
 PORT = 8080  # Local port for the webhook endpoint
 
 # Track currently running subprocesses by broadcaster name.
@@ -64,10 +65,10 @@ class TwitchWebHookHandler(BaseHTTPRequestHandler):
                     time_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
                     filename = f"{VOD_DIR}/{broadcaster}_{time_str}_hevc.mp4"
 
-                    # Pipe streamlink output directly into ffmpeg for transcoding.
+                    # Pipe streamlink output directly into ffmpeg to save resources and because twitch uses mpeg4 h.264 I am not transcoding the video stream, just copying it. Audio is also copied without transcoding.
                     cmd = (
                         f'streamlink "https://twitch.tv/{broadcaster}?token={AUTH_TOKEN}" best -O | '
-                        f'ffmpeg -i - -c:v libx265 -preset fast -crf 23 -c:a aac -b:a 128k -f mp4 "{filename}"'
+                        f'ffmpeg -i - -c:v copy -c:a copy "{filename}"'
                     )
 
                     # Run the recording pipeline in a shell.

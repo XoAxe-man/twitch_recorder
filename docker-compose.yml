@@ -1,0 +1,18 @@
+version: '3.8'
+services:
+	twitch_recorder:
+		build: .
+    container_name: twitch_recorder
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - TWITCH_SECRET=${TWITCH_SECRET}
+      - Twitch_auth_token=${Twitch_auth_token}
+      - Twitch_client_id=${Twitch_client_id}  
+
+    volumes: /volume1/VOD/recordings:/VOD
+
+# Usage notes:
+# - Replace image/build settings with your application specifics.
+# - Add env_file or secrets for sensitive values in production.
