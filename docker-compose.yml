@@ -6,6 +6,8 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
+	env_file:
+      - .env  
     environment:
       - TWITCH_SECRET=${TWITCH_SECRET}
       - Twitch_auth_token=${Twitch_auth_token}
