@@ -14,6 +14,8 @@ services:
       - "8080:8080"
 
     # Environment variables are loaded from the .env file and passed into the container.
+	  env_file:
+      - .env  
     environment:
       - TWITCH_SECRET=${TWITCH_SECRET}
       - Twitch_auth_token=${Twitch_auth_token}
