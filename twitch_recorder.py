@@ -56,13 +56,19 @@ class TwitchWebHookHandler(BaseHTTPRequestHandler):
             if event_type == 'stream.online':
                 if broadcaster not in active_recordings or active_recordings[broadcaster].poll() is not None:
                     time_str = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M')
-                    filename = f'{VOD_DIR}/{broadcaster}_{time_str}_hevc.mp4'
+                    filepath = f'{VOD_DIR}/{broadcaster}_{time_str}'
 
                     # Create a recording pipeline: streamlink retrieves the Twitch stream,
                     # and ffmpeg copies the input stream into an MP4 container.
                     cmd = (
-                        f'streamlink "https://twitch.tv/{broadcaster}?token={AUTH_TOKEN}" best -O | '
-                        f'ffmpeg -i - -c:v copy -c:a copy "{filename}"'
+                        f'/usr/bin/streamlink "https://twitch.tv/{broadcaster}" best '
+                        f'--retry-streams 5 --retry-max 3 '
+                        f'--stream-timeout 30 '
+                        f'--twitch-disable-hosting '
+                        f'--twitch-disable-reruns '
+                        f'--twitch-api-header "Authorization=OAuth {AUTH_TOKEN}" '
+                        f'-o "{filepath}.ts" && '
+                        f'/usr/bin/ffmpeg -y -i "{filepath}.ts" -c copy "{filepath}.mp4"'
                     )
 
                     process = subprocess.Popen(
