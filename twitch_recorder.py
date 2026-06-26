@@ -56,7 +56,7 @@ class TwitchWebHookHandler(BaseHTTPRequestHandler):
 
             if event_type == 'stream.online':
                 if broadcaster not in active_recordings or active_recordings[broadcaster].poll() is not None:
-                    time_str = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M')
+                    time_str = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
                     filepath = f'{VOD_DIR}/{broadcaster}_{time_str}'
 
                     # Capture live streams on Linux and export them into a format that is practical for post-production,
