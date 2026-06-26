@@ -23,4 +23,4 @@ services:
 
     # Mount a host directory to persist downloaded VOD content outside the container.
     volumes:
-      - /volume1/VOD/:/VOD
+      - /volume1/VOD/recordings/:/VOD/recordings/
