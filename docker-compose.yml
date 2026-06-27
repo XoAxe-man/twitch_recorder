@@ -12,7 +12,7 @@ services:
             - /dev/dri:/dev/dri
     # Load environment variables from the .env file and pass them into the container.
     env_file:
-      - .env  
+      - twitch-recorder.env  
     environment:
       - TWITCH_SECRET=${TWITCH_SECRET}
       - Twitch_auth_token=${Twitch_auth_token}
