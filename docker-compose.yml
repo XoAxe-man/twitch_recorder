@@ -3,19 +3,13 @@ version: '3.8'
 # Define the services required to deploy the Twitch recorder.
 services:
   twitch_recorder:
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
     build: .
     container_name: twitch_recorder
     restart: unless-stopped
 
     network_mode: host
-
+    devices:
+            - /dev/dri:/dev/dri
     # Load environment variables from the .env file and pass them into the container.
     env_file:
       - .env  

@@ -68,7 +68,7 @@ class TwitchWebHookHandler(BaseHTTPRequestHandler):
                         f'--twitch-disable-reruns '
                         f'--twitch-api-header "Authorization=OAuth {AUTH_TOKEN}" '
                         f'-o "{filepath}.ts" && '
-                        f'/usr/bin/ffmpeg -y -i "{filepath}.ts" -c:v h264_nvenc -preset p6 -profile:v high -b:v 8000k -c:a pcm_s16le "{filepath}.mov"'
+                        f'/usr/bin/ffmpeg -y -i "{filepath}.ts" -c:v h264_qsv -preset slow -profile:v high -b:v 8000k -c:a pcm_s16le "{filepath}.mov"'
                     )
 
                     # Start the recording process in the background so the webhook handler can continue processing requests.
@@ -76,8 +76,8 @@ class TwitchWebHookHandler(BaseHTTPRequestHandler):
                         cmd,
                         shell=True,
                         executable='/bin/bash',
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
                         stdin=subprocess.DEVNULL,
                     )
                     active_recordings[broadcaster] = process
