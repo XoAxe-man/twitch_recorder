@@ -1,6 +1,6 @@
 version: '3.8'
 
-# Define the services required to deploy the Twitch recorder.
+# Twitch recording service definition.
 services:
   twitch_recorder:
     build: .
@@ -10,7 +10,7 @@ services:
     network_mode: host
     devices:
       - /dev/dri:/dev/dri
-    # Load environment variables from the .env file and pass them into the container.
+    # Load environment secrets.
     env_file:
       - twitch-recorder.env  
     environment:
@@ -18,7 +18,7 @@ services:
       - Twitch_auth_token=${Twitch_auth_token}
       - Twitch_client_id=${Twitch_client_id}
 
-    # Mount a host directory to preserve recorded VOD content outside the container.
+    # Mount volumes for VOD recordings and logs.
     volumes:
       - /volume1/VOD/recordings/:/VOD/recordings/:rw
       - /volume1/VOD/logs/:/VOD/logs:rw
