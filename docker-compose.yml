@@ -9,7 +9,7 @@ services:
 
     network_mode: host
     devices:
-            - /dev/dri:/dev/dri
+      - /dev/dri:/dev/dri
     # Load environment variables from the .env file and pass them into the container.
     env_file:
       - twitch-recorder.env  
@@ -20,4 +20,5 @@ services:
 
     # Mount a host directory to preserve recorded VOD content outside the container.
     volumes:
-      - /volume1/VOD/recordings/:/VOD/recordings/
+      - /volume1/VOD/recordings/:/VOD/recordings/:rw
+      - /volume1/VOD/logs/:/VOD/logs:rw

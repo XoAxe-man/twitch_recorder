@@ -2,11 +2,13 @@
 FROM python:3.9-slim
 LABEL maintainer="andrew.woehrle@gmail.com"
 
-# Install required system packages for video downloading and playback.
-# Update the package lists first, then install ffmpeg and streamlink in one command.
+# Install FFmpeg via apt, then clean up the cache.
 RUN apt-get update -y \
-    && apt-get install -y --no-install-recommends ffmpeg streamlink \
+    && apt-get install -y --no-install-recommends ffmpeg \
     && rm -rf /var/lib/apt/lists/*
+
+# Install the absolute latest version of Streamlink directly from PyPI.
+RUN pip install --no-cache-dir streamlink
 
 # Set the working directory for the application.
 WORKDIR /app

@@ -53,21 +53,17 @@ class TwitchWebHookHandler(BaseHTTPRequestHandler):
         elif message_type == 'notification':
             event_type = body.get('subscription', {}).get('type', '')
             broadcaster = body.get('event', {}).get('broadcaster_user_login', '')
-
+            time_str = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
             if event_type == 'stream.online':
                 if broadcaster not in active_recordings or active_recordings[broadcaster].poll() is not None:
-                    time_str = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
                     filepath = f'{VOD_DIR}/{broadcaster}_{time_str}'
 
                     # Capture live streams on Linux and export them into a format suitable for post-production workflows.
                     cmd = (
-                        f'/usr/bin/streamlink "https://twitch.tv/{broadcaster}" best '
+                        f'/usr/local/bin/streamlink "https://twitch.tv/{broadcaster}?token={AUTH_TOKEN}" best '                   
                         f'--retry-streams 5 --retry-max 3 '
-                        f'--stream-timeout 30 '
-                        f'--twitch-disable-hosting '
-                        f'--twitch-disable-reruns '
-                        f'--twitch-api-header "Authorization=OAuth {AUTH_TOKEN}" '
-                        f'-o "{filepath}.ts" && '
+                        f'--stream-timeout 60 '
+                        f'-o "{filepath}.ts" > "/VOD/logs/{broadcaster}_{time_str}_streamlink.log" 2>&1 && '
                         f'/usr/bin/ffmpeg -y -i "{filepath}.ts" -c:v h264_qsv -preset slow -profile:v high -b:v 8000k -c:a pcm_s16le "{filepath}.mov"'
                     )
 
@@ -82,7 +78,8 @@ class TwitchWebHookHandler(BaseHTTPRequestHandler):
                     )
                     active_recordings[broadcaster] = process
                 else:
-                    print(f'Recording already active for {broadcaster}')
+                    with open(f'/VOD/logs/{broadcaster}_{time_str}_recording.log', 'a') as f:
+                        f.write(f'Recording already active for {broadcaster}\n')
 
         self.send_response(200)
         self.end_headers()
