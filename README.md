@@ -1,14 +1,13 @@
 # Twitch Recorder
 
-This repository contains a lightweight Twitch EventSub webhook listener and recording service.
-It is designed to start recording when a configured Twitch channel goes live, saving VOD files to a mounted host volume.
+A lightweight Docker-based service for automatically recording Twitch streams. This application listens for Twitch EventSub webhook notifications and automatically records streams when configured channels go live, saving VOD files to persistent storage.
 
-## Overview
+## Project Structure
 
-- `twitch_recorder.py`: Python-based webhook handler for Twitch EventSub notifications.
-- `Dockerfile`: Builds a container with Python 3.9, `ffmpeg`, and `streamlink`.
-- `docker-compose.yml`: Defines the service configuration, environment injection, port mapping, and storage mount.
-- `twitch-recorder.env`: Example environment variable file for local deployment.
+- **`twitch_recorder.py`**: Python-based EventSub webhook handler and recording orchestrator
+- **`Dockerfile`**: Container image build definition (Python 3.9, ffmpeg, streamlink)
+- **`docker-compose.yml`**: Service orchestration, environment configuration, and volume management
+- **`twitch-recorder.env`**: Environment variable template for configuration
 
 ## Dependencies
 
@@ -18,27 +17,31 @@ The project depends on the following runtime components:
 - ffmpeg
 - streamlink
 
-The container installs these dependencies automatically during image build.
+All dependencies are automatically installed during the container build process.
 
 ## Configuration
 
-Required environment variables:
+### Required Environment Variables
 
-- `TWITCH_SECRET`: Secret used to validate Twitch EventSub webhook signatures.
-- `Twitch_auth_token`: OAuth token used by `streamlink` to access Twitch streams.
-- `Twitch_client_id`: Twitch client ID used for Twitch API interactions.
+| Variable | Purpose |
+|----------|----------|
+| `TWITCH_SECRET` | EventSub webhook signature validation key |
+| `Twitch_auth_token` | OAuth token for authenticated stream access |
+| `Twitch_client_id` | Twitch API client identifier |
 
-The service reads these values from environment variables, typically provided through the `.env` file referenced by `docker-compose.yml`.
+These values are loaded from the `.env` file and passed to the container via `docker-compose.yml`.
 
-### Example `.env` values
+### Example Configuration
+
+Create `twitch-recorder.env` with your credentials:
 
 ```env
-TWITCH_SECRET=your_webhook_secret
-Twitch_auth_token=your_twitch_auth_token
-Twitch_client_id=your_twitch_client_id
+TWITCH_SECRET=your_webhook_secret_here
+Twitch_auth_token=your_oauth_token_here
+Twitch_client_id=your_client_id_here
 ```
 
-> Do not commit actual secret values to source control.
+⚠️ **Important**: Never commit actual credentials to version control.
 
 ## Usage
 
@@ -50,20 +53,22 @@ Twitch_client_id=your_twitch_client_id
 docker compose up --build -d
 ```
 
-4. Configure your Twitch EventSub subscription to send webhook notifications to the container's exposed port `8080`.
+4. Register your Twitch EventSub subscription to send webhook notifications to port `8080` on your server.
 
-## Recorded Output
+## Output
 
-Recorded video files are saved to the mounted volume at `/VOD` inside the container.
-Files are named using the broadcaster's login and the current timestamp.
+Recorded streams are saved to `/VOD/recordings/` on the host system. Files are named with the format: `{broadcaster_login}_{YYYY-MM-DD_HH-MM-SS}.mov`
 
-## Notes
+## Technical Details
 
-- The script validates Twitch EventSub webhook signatures using HMAC SHA-256.
-- `streamlink` is piped directly into `ffmpeg` to capture the live stream without transcoding.
-- The container exposes port `8080` for receiving webhook callbacks.
+- **Signature Validation**: EventSub webhooks are validated using HMAC-SHA256 to ensure authenticity
+- **Stream Capture**: `streamlink` streams directly to `ffmpeg` for efficient transcoding to MOV format
+- **Webhook Port**: The service listens on port `8080` for EventSub notifications
+- **Authentication**: OAuth tokens are passed via URL parameters to minimize API header overhead and reduce rate-limiting issues
 
-## Security
+## Security Considerations
 
-- Keep `TWITCH_SECRET`, `Twitch_auth_token`, and `Twitch_client_id` confidential.
-- Use a secure volume for recorded VOD files and avoid exposing secret values in logs or source control.
+- **Credentials**: Never commit `.env` files or expose `TWITCH_SECRET`, `Twitch_auth_token`, or `Twitch_client_id` in source control
+- **Storage**: Restrict access to the VOD recording volume
+- **Logs**: Sensitive values should not be logged; configure log rotation and retention policies
+- **Network**: Deploy the service within a secure network environment
