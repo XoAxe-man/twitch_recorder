@@ -64,7 +64,7 @@ class TwitchWebHookHandler(BaseHTTPRequestHandler):
                         f'--retry-streams 5 --retry-max 3 '
                         f'--stream-timeout 60 '
                         f'-o "{filepath}.ts" > "/VOD/logs/{broadcaster}_{time_str}_streamlink.log" 2>&1 && '
-                        f'/usr/bin/ffmpeg -y -i "{filepath}.ts" -c:v h264_qsv -profile:v high -b:v 8000k -c:a pcm_s16le "{filepath}.mov" && '
+                        f'/usr/bin/ffmpeg -y -vaapi_device /dev/dri/renderD128 -i "{filepath}.ts" -vf "format=nv12,hwupload" -c:v h264_vaapi -profile:v high -qp 23 -c:a pcm_s16le "{filepath}.mov" && '
                         f'rm "{filepath}.ts"'
 
                     )
