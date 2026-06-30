@@ -55,6 +55,32 @@ docker compose up --build -d
 
 4. Register your Twitch EventSub subscription to send webhook notifications to port `8080` on your server.
 
+### Recording command
+
+The recorder uses a safe two-step command that writes a temporary `.ts` file, converts it to a `.mov`, removes the intermediate `.ts`, and avoids creating duplicate output files. Variables like `broadcaster` and `timestamp` are set by the recorder at runtime.
+
+```bash
+# Example (run inside the container):
+tmp="/tmp/${broadcaster}.ts"
+out="/VOD/recordings/${broadcaster}_${timestamp}.mov"
+
+streamlink "https://twitch.tv/${broadcaster}" best -O > "$tmp" \
+	&& ffmpeg -y -i "$tmp" -c copy "$out" \
+	&& rm -f "$tmp"
+```
+
+To further prevent duplicate recordings, the service ensures the final output path doesn't already exist before converting and will remove the temporary file if a duplicate is detected:
+
+```bash
+if [ -f "$out" ]; then
+	rm -f "$tmp"
+else
+	ffmpeg -y -i "$tmp" -c copy "$out" && rm -f "$tmp"
+fi
+```
+
+This ensures intermediate `.ts` files are deleted and avoids producing duplicate VOD files when re-running or recovering from failures.
+
 ## Output
 
 Recorded streams are saved to `/VOD/recordings/` on the host system. Files are named with the format: `{broadcaster_login}_{YYYY-MM-DD_HH-MM-SS}.mov`

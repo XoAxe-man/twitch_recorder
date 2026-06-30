@@ -4,7 +4,7 @@ LABEL maintainer="andrew.woehrle@gmail.com"
 
 # Install FFmpeg and clean up package manager cache.
 RUN apt-get update -y \
-    && apt-get install -y --no-install-recommends ffmpeg \
+    && apt-get install -y --no-install-recommends ffmpeg intel-media-va-driver vainfo \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Streamlink from PyPI.

@@ -64,7 +64,9 @@ class TwitchWebHookHandler(BaseHTTPRequestHandler):
                         f'--retry-streams 5 --retry-max 3 '
                         f'--stream-timeout 60 '
                         f'-o "{filepath}.ts" > "/VOD/logs/{broadcaster}_{time_str}_streamlink.log" 2>&1 && '
-                        f'/usr/bin/ffmpeg -y -i "{filepath}.ts" -c:v h264_qsv -preset slow -profile:v high -b:v 8000k -c:a pcm_s16le "{filepath}.mov"'
+                        f'/usr/bin/ffmpeg -y -i "{filepath}.ts" -c:v h264_qsv -profile:v high -b:v 8000k -c:a pcm_s16le "{filepath}.mov" && '
+                        f'rm "{filepath}.ts"'
+
                     )
 
                     # Start recording in background.
