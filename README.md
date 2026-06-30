@@ -68,17 +68,6 @@ streamlink "https://twitch.tv/${broadcaster}" best -O > "$tmp" \
 	&& ffmpeg -y -i "$tmp" -c copy "$out" \
 	&& rm -f "$tmp"
 ```
-
-To further prevent duplicate recordings, the service ensures the final output path doesn't already exist before converting and will remove the temporary file if a duplicate is detected:
-
-```bash
-if [ -f "$out" ]; then
-	rm -f "$tmp"
-else
-	ffmpeg -y -i "$tmp" -c copy "$out" && rm -f "$tmp"
-fi
-```
-
 This ensures intermediate `.ts` files are deleted and avoids producing duplicate VOD files when re-running or recovering from failures.
 
 ## Output
