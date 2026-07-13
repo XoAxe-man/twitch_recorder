@@ -1,6 +1,6 @@
 version: '3.8'
 
-# Twitch recording service definition with decoupled monitor and recorder containers.
+# Compose file defining the monitor and recorder services.
 services:
   monitor:
     build: .
@@ -11,11 +11,12 @@ services:
       - "8080:8080"
     networks:
       - internal_ipc
-    # Load environment secrets for EventSub validation.
+    # Load environment variables from the shared `.env` file.
     env_file:
-      - twitch-recorder.env
+      - twitch-recorder.env  
 
-    # Mount volume for monitor logs.
+
+    # Mount the host logs directory for persistent container logging.
     volumes:
       - /volume1/VOD/logs/:/VOD/logs:rw
   twitch_recorder:
@@ -28,16 +29,16 @@ services:
       - "9000"
     devices:
       - /dev/dri:/dev/dri
-    # Load environment secrets for recording and stream access.
+    # Load environment variables from the shared `.env` file.
     env_file:
-      - twitch-recorder.env
-
-    # Mount volumes for VOD recordings and logs.
+      - twitch-recorder.env  
+      
+    # Mount host directories for recordings and logs into the recorder container.
     volumes:
       - /volume1/VOD/recordings/:/VOD/recordings/:rw
       - /volume1/VOD/logs/:/VOD/logs:rw
     networks:
-      - internal_ipc
+      - internal_ipc  
 
 networks:
   internal_ipc:
