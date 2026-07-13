@@ -41,7 +41,7 @@ class InternalIPC_Handler(BaseHTTPRequestHandler):
                     f'--retry-streams 5 --retry-max 3 '
                     f'--stream-timeout 60 '
                     f'-o "{filepath}.ts" > "/VOD/logs/{broadcaster}_{time_str}_streamlink.log" 2>&1 && '
-                    f'ssh -i ~/.ssh/naspasskey USER@<EDITING_PC_IP> "/opt/scripts/transcode_vod.sh \'{filepath}.ts\'"'
+                    f'ssh -i /root/.ssh/naspasskey USER@<EDITING_PC_IP> "/opt/scripts/transcode_vod.sh \'{filepath}.ts\'"'
                 )
 
                 # Launch the recording process asynchronously and store its process handle for state tracking.

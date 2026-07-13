@@ -35,6 +35,7 @@ services:
     volumes:
       - /volume1/VOD/recordings/:/VOD/recordings/:rw
       - /volume1/VOD/logs/:/VOD/logs:rw
+      - ./naspasskey:/root/.ssh/naspasskey:ro
     networks:
       - internal_ipc  
 
