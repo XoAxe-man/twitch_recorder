@@ -59,6 +59,42 @@ docker compose up --build -d
 
 4. Make sure Twitch EventSub webhook events are configured to POST to the host on port `8080`.
 
+## Run the remote transcoder as a daemon
+
+The local recorder and monitor services are managed by Docker Compose, while the remote transcoding computer should keep the `transcode_vod.sh` helper script available and ready to execute.
+
+You can use a systemd service on the transcoding host to ensure the script environment is prepared and mounted paths are available.
+
+### Example systemd service for the transcoder host
+
+```ini
+[Unit]
+Description=Transcode VOD script helper
+After=network.target remote-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/scripts/transcode_vod.sh /mnt/vod/last_input.ts
+RemainAfterExit=yes
+WorkingDirectory=/opt/scripts
+User=axe-man
+Group=axe-man
+
+[Install]
+WantedBy=multi-user.target
+```
+
+This example service is a template for ensuring systemd can execute the script in the correct environment. In practice, the recorder container invokes `transcode_vod.sh` over SSH for each completed recording.
+
+### Enable the transcoder host service
+
+```bash
+sudo systemctl enable transcode-vod.service
+sudo systemctl start transcode-vod.service
+```
+
+If the transcoder host must expose the script over SSH, confirm that the SSH key, user account, and mount points are configured before starting the service.
+
 ## Runtime Behavior
 
 - `monitor` listens on port `8080` for Twitch EventSub requests.
@@ -73,6 +109,24 @@ The compose file defines two services connected by the `internal_ipc` network:
 - `twitch_recorder` exposes port `9000` internally
 
 Both services share the same `twitch-recorder.env` file and mount host volumes for logs and recordings.
+
+## Transcoding Computer Setup
+
+The recorder container triggers a remote transcoding script over SSH on a second machine.
+
+- The remote host should have the recorded volume mounted at `/mnt/vod/`.
+- The script is expected to live at `/opt/scripts/transcode_vod.sh`.
+- The recorder sends the raw `.ts` path in `/VOD/` format, and the script rewrites that path to the local `/mnt/vod/` mount.
+- The transcoding host should expose a `~/Logs` directory for ffmpeg logs.
+- The script remuxes the raw file, encodes video with NVIDIA CUDA, extracts the audio track, and moves the final files back to the shared recording destination.
+
+Example SSH command used by the recorder container:
+
+```bash
+ssh -i ~/.ssh/naspasskey USER@<TRANSCODE_HOST_IP> "/opt/scripts/transcode_vod.sh '/VOD/recordings/streamer_2026-07-13_12-34-56.ts'"
+```
+
+Ensure the SSH key and user permissions are configured correctly before using the remote transcoder.
 
 ## Output
 
