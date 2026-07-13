@@ -1,6 +1,6 @@
 version: '3.8'
 
-# Compose file defining the monitor and recorder services.
+# Docker Compose definition for the monitor and recorder services.
 services:
   monitor:
     build: .
@@ -11,12 +11,12 @@ services:
       - "8080:8080"
     networks:
       - internal_ipc
-    # Load environment variables from the shared `.env` file.
+    # Load environment variables from the shared configuration file.
     env_file:
       - twitch-recorder.env  
 
 
-    # Mount the host logs directory for persistent container logging.
+    # Mount the host logs directory into the monitor container.
     volumes:
       - /volume1/VOD/logs/:/VOD/logs:rw
   twitch_recorder:
@@ -27,9 +27,7 @@ services:
 
     expose:
       - "9000"
-    devices:
-      - /dev/dri:/dev/dri
-    # Load environment variables from the shared `.env` file.
+    # Load environment variables from the shared configuration file.
     env_file:
       - twitch-recorder.env  
       

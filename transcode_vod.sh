@@ -1,14 +1,14 @@
 #!/bin/bash
 # /opt/scripts/transcode_vod.sh
-# Remote transcoding helper executed over SSH from the recorder host.
+# Remote transcoding helper executed via SSH by the recorder host.
 # It remuxes the raw Twitch .ts file, encodes video with NVIDIA hardware,
 # extracts the audio track, and writes the final files back to the shared
 # destination path.
 
 RAW_INPUT="$1"
 
-# Translate the recorder container path into the local mount path used by
-# the transcoding machine.
+# Translate the recorder container path prefix from /VOD/ to the local
+# transcoder mount path at /mnt/vod/.
 INPUT_FILE="${RAW_INPUT/\/VOD\//\/mnt\/vod\/}"
 BASENAME=$(basename "$INPUT_FILE")
 FILENAME="${BASENAME%.ts}"
@@ -51,4 +51,6 @@ if [ $? -eq 0 ]; then
       else
          echo "Error: Final file copy failed"
          exit 1
+      fi   
+   fi      
 fi
