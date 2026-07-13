@@ -3,7 +3,7 @@
 A lightweight Docker Compose service for automatically recording Twitch streams.
 
 This repository contains two Python-based containers:
-- `monitor`: receives Twitch EventSub webhook notifications and validates signatures
+- `monitor`: receives Twitch EventSub webhook notifications, validates signatures, and optionally polls Twitch Helix for configured streamers
 - `twitch_recorder`: launches recordings when a monitored broadcaster goes live
 
 Recorded VODs are saved to a host-mounted volume for persistent storage.
@@ -99,6 +99,7 @@ If the transcoder host must expose the script over SSH, confirm that the SSH key
 
 - `monitor` listens on port `8080` for Twitch EventSub requests.
 - It validates webhook signatures using `TWITCH_SECRET`.
+- `monitor` also polls the Twitch Helix API periodically for configured streamer logins, triggering the recorder when a live stream is detected.
 - When a `stream.online` notification arrives, it sends an internal POST to `twitch_recorder:9000`.
 - `twitch_recorder` starts a background Streamlink recording process and logs activity.
 
