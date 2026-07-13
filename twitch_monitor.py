@@ -2,14 +2,10 @@ import os
 import json
 import hmac
 import hashlib
-import datetime
-import subprocess
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-# Load Twitch EventSub secrets and configuration from environment.
+# Monitor container: receives Twitch EventSub webhooks and forwards start requests to the recorder.
 Secret = os.getenv('TWITCH_SECRET', 'default_fallback_secret_if_empty')
-VOD_DIR = '/VOD/recordings'
-AUTH_TOKEN = os.getenv('Twitch_auth_token', '')
 PORT = 8080
 
 class TwitchWebHookHandler(BaseHTTPRequestHandler):
@@ -50,11 +46,39 @@ class TwitchWebHookHandler(BaseHTTPRequestHandler):
         elif message_type == 'notification':
             event_type = body.get('subscription', {}).get('type', '')
             broadcaster = body.get('event', {}).get('broadcaster_user_login', '')
-            time_str = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+            # Only trigger a recorder start command for stream.online events.
+            if event_type == 'stream.online':
+                print(f"Stream online event received for: {broadcaster}")
+
+                # Send the IPC command to the recorder container over the internal Docker network.
+                import urllib.request
+                url = 'http://twitch_recorder:9000'
+                payload = json.dumps({
+                    "broadcaster": broadcaster,
+                    "action": "start"
+                }).encode('utf-8')
+
+                req = urllib.request.Request(url, data=payload, method='POST')
+                req.add_header('Content-Type', 'application/json')
+
+                try:
+                    urllib.request.urlopen(req)
+                    print("Successfully notified recorder container.")
+                except Exception as e:
+                    print(f"Failed to reach recorder: {e}")
+
+            # Always return 200 OK to Twitch so EventSub delivery is considered successful.
+            self.send_response(200)
+            self.end_headers()
 
         else:
             self.send_response(400)
             self.end_headers()
             self.wfile.write(b'Bad Request')
             return
-            
+
+if __name__ == '__main__':
+    server = HTTPServer(('0.0.0.0', PORT), TwitchWebHookHandler)
+    print('Listening for webhooks on port', PORT)
+    server.serve_forever()            

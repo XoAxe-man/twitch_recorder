@@ -1,24 +1,44 @@
 version: '3.8'
 
-# Twitch recording service definition.
+# Twitch recording service definition with decoupled monitor and recorder containers.
 services:
+  monitor:
+    build: .
+    container_name: twitch_monitor
+    command: ["python", "-u", "twitch_monitor.py"]
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    networks:
+      - internal_ipc
+    # Load environment secrets for EventSub validation.
+    env_file:
+      - twitch-recorder.env
+
+    # Mount volume for monitor logs.
+    volumes:
+      - /volume1/VOD/logs/:/VOD/logs:rw
   twitch_recorder:
     build: .
     container_name: twitch_recorder
+    command: ["python", "-u", "twitch_recorder.py"]
     restart: unless-stopped
 
-    network_mode: host
+    expose:
+      - "9000"
     devices:
       - /dev/dri:/dev/dri
-    # Load environment secrets.
+    # Load environment secrets for recording and stream access.
     env_file:
-      - twitch-recorder.env  
-    environment:
-      - TWITCH_SECRET=${TWITCH_SECRET}
-      - Twitch_auth_token=${Twitch_auth_token}
-      - Twitch_client_id=${Twitch_client_id}
+      - twitch-recorder.env
 
     # Mount volumes for VOD recordings and logs.
     volumes:
       - /volume1/VOD/recordings/:/VOD/recordings/:rw
       - /volume1/VOD/logs/:/VOD/logs:rw
+    networks:
+      - internal_ipc
+
+networks:
+  internal_ipc:
+    driver: bridge
