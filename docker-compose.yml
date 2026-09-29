@@ -1,32 +1,18 @@
 version: '3.8'
 
 # Docker Compose definition for the monitor and recorder services.
-services:
-  monitor:
-    build: .
-    container_name: twitch_monitor
-    command: ["python", "-u", "twitch_monitor.py"]
-    restart: unless-stopped
-    ports:
-      - "8080:8080"
-    networks:
-      - internal_ipc
-    # Load environment variables from the shared configuration file.
-    env_file:
-      - twitch-recorder.env  
-
+services: 
 
     # Mount the host logs directory into the monitor container.
     volumes:
       - /volume1/VOD/logs/:/VOD/logs:rw
-  twitch_recorder:
+twitch_recorder:
     build: .
     container_name: twitch_recorder
-    command: ["python", "-u", "twitch_recorder.py"]
     restart: unless-stopped
 
-    expose:
-      - "9000"
+    ports:
+      - "9000:9000"
     # Load environment variables from the shared configuration file.
     env_file:
       - twitch-recorder.env  
@@ -36,9 +22,3 @@ services:
       - /volume1/VOD/recordings/:/VOD/recordings/:rw
       - /volume1/VOD/logs/:/VOD/logs:rw
       - ./naspasskey:/root/.ssh/naspasskey:ro
-    networks:
-      - internal_ipc  
-
-networks:
-  internal_ipc:
-    driver: bridge
